@@ -54,7 +54,7 @@ def aroundMines(grid):
             if not grid[r][c].mine:
                 addtocount(grid, r, c)
 
-# NUEVO: mostrar tablero del jugador
+
 def show_player_grid(grid):
     for r in range(len(grid)):
         for c in range(len(grid[r])):
@@ -69,7 +69,7 @@ def show_player_grid(grid):
                 print(cell.number, end=" ")
         print()
 
-# NUEVO: revelar celda
+
 def reveal(grid, r, c):
     if not cellExist(grid, r, c) or grid[r][c].revealed:
         return True
@@ -77,9 +77,9 @@ def reveal(grid, r, c):
     grid[r][c].revealed = True
 
     if grid[r][c].mine:
-        return False  # PERDISTE
+        return False
 
-    # si es 0, revelar alrededor automáticamente
+  
     if grid[r][c].number == 0:
         directions = [(-1,-1),(-1,0),(-1,1),
                       (0,-1),(0,1),
@@ -89,7 +89,7 @@ def reveal(grid, r, c):
 
     return True
 
-# JUEGO
+
 game = generateGrid(5,5)
 setMines(game, 5)
 aroundMines(game)
