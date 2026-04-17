@@ -1,0 +1,21 @@
+{% extends './layout.html' %}
+{% block title %}{{data.page}}{% endblock %}
+
+{% block body %}
+
+<table>
+    {% for row in grid %}
+    <tr>
+        {% for cell in row %}
+        <td>   
+            {% if cell.mine %}
+                #
+            {% else %}
+                {{cell.number}}
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
