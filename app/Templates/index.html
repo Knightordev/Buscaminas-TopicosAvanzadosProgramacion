@@ -8,15 +8,15 @@
     {% for row in grid %}
     <tr>
         {% for cell in row %}
-        <td>   
-            {% if cell.revealed %}
+        <td data-revealed="{{ 1 if cell.revealed else 0 }}" data-flagged="{{ 1 if cell.flag else 0 }}">
+            {% if cell.flag %}
+                🚩
+            {% elif cell.revealed %}
                 {% if cell.mine %}
-                    #
-                {% else %}
+                    💣
+                {% elif cell.number > 0 %}
                     {{cell.number}}
                 {% endif %}
-            {% else %}
-                ?
             {% endif %}
         </td>
         {% endfor %}

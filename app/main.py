@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, session
+from flask import Flask, render_template, request, jsonify, session
 from game import Game
 import json
 
@@ -54,17 +54,48 @@ def reveal(row, col):
     if game is None:
         return jsonify({'error': 'no game'}), 400
 
+    if not game.in_bounds(row, col):
+        return jsonify({'error': 'invalid_coordinates'}), 400
     cell = game.grid[row][col]
+
     if cell.revealed:
         return jsonify({'already_revealed': True})
 
-    cell.revealed = True
+    if cell.flag:
+        return jsonify({'blocked': 'flagged'})
+    revealed_cell = game.reveal(row, col)
     session['grid'] = game_to_dict(game)
 
-    if cell.mine:
+    if revealed_cell is None:
+        return jsonify({'error': 'invalid_move'}), 400
+
+    if revealed_cell.mine:
         return jsonify({'type': 'mine'})
     else:
-        return jsonify({'type': 'number', 'value': cell.number})
+        return jsonify({'type': 'number', 'value': revealed_cell.number})
+
+
+@app.route('/toggle_flag', methods=['POST'])
+def handle_flag():
+    game = load_game_from_session()
+    if game is None:
+        return jsonify({'error': 'no game'}), 400
+
+    data = request.json
+    r = data.get('r')
+    c = data.get('c')
+    
+    if r is None or c is None:
+        return jsonify({'error': 'missing_coordinates'}), 400
+    if not game.in_bounds(r, c):
+        return jsonify({'error': 'invalid_coordinates'}), 400
+
+    flagged = game.toggle_flag(r, c)
+    if flagged is None:
+        return jsonify({'error': 'invalid_move'}), 400
+    session['grid'] = game_to_dict(game)
+
+    return jsonify({'status': 'success', 'is_flagged': flagged})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -60,5 +60,19 @@ class Game:
                     self.grid[r][c].number = self.count_mines_around(r, c)
 
     def reveal(self, r, c):
-        if self.in_bounds( r, c) and not self.grid[r][c].revealed:
-            self.grid[r][c].revealed = True
+        if not self.in_bounds(r, c):
+            return None
+
+        cell = self.grid[r][c]
+        if cell.revealed or cell.flag:
+            return None
+
+        cell.revealed = True
+        return cell
+
+    def toggle_flag(self, r, c):
+        if self.in_bounds(r, c) and not self.grid[r][c].revealed:
+            self.grid[r][c].flag = not self.grid[r][c].flag
+            return self.grid[r][c].flag
+        return None
+
