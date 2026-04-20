@@ -58,4 +58,7 @@ class Game:
             for c in range(self.c):
                 if not self.grid[r][c].mine:
                     self.grid[r][c].number = self.count_mines_around(r, c)
-    
+
+    def reveal(self, r, c):
+        if self.in_bounds( r, c) and not self.grid[r][c].revealed:
+            self.grid[r][c].revealed = True

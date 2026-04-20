@@ -11,5 +11,5 @@ td {
     height: 40px;
     border: 1px solid black;
     text-align: center;
-    /* cursor: pointer; */
+    cursor: pointer;
 }
