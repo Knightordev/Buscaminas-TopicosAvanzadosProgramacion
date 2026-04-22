@@ -1,6 +1,12 @@
 body {
-    background-color: deeppink;
+    background-image: url("../img/fondo2.jpeg");
+    background-size: auto;  
+    background-position: center;  
+    background-repeat: no-repeat;
 }
+
+
+
 
 table {
     border-collapse: collapse;
