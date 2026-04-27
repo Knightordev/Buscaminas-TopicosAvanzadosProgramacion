@@ -40,6 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showRevealedCell(cell, data) {
+        if (data.type === "mine") {
+    alert("💣 Perdiste — Puntaje: " + data.puntaje);
+}
         cell.dataset.revealed = "1";
         cell.dataset.flagged = "0";
 
