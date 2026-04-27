@@ -104,19 +104,20 @@ def reveal(row, col):
     if cell.flag:
         return jsonify({'blocked': 'flagged'})
 
-    revealed_cell = game.reveal(row, col)
-    session['grid'] = game_to_dict(game)
-
-    if revealed_cell is None:
-        return jsonify({'error': 'invalid_move'}), 400
-
-    if revealed_cell.mine:
+    if cell.mine:
+        cell.revealed = True
+        session['grid'] = game_to_dict(game)
+        
         puntaje = calcular_puntaje(game)
         guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
         return jsonify({'type': 'mine', 'puntaje': puntaje})
+    
+    revealed_cells = game.reveal(row, col)
+    session['grid'] = game_to_dict(game)
 
-    else:
-        return jsonify({'type': 'number', 'value': revealed_cell.number})
+    if revealed_cells is None:
+        return jsonify({'error': 'invalid_move'}), 400
+    return jsonify({'type': 'reveal', 'cells': revealed_cells})
 
 @app.route('/toggle_flag', methods=['POST'])
 def handle_flag():
