@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Mejores Puntajes</title>
+</head>
+<body>
+    <h1> Top 10 Puntajes</h1>
+
+
+<table border="1">
+    <tr>
+        <th>Nombre</th>
+        <th>Puntaje</th>
+    </tr>
+
+    {% for nombre, puntaje in puntajes %}
+    <tr>
+        <td>{{ nombre }}</td>
+        <td>{{ puntaje }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="/">Volver al juego</a>
+
+
+</body>
+</html>
