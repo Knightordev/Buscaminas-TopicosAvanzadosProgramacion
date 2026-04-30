@@ -1,5 +1,6 @@
 body {
-    background-color: black
+    background-color: black;
+    text-align: center;
 }
 
 body::before,
@@ -33,6 +34,7 @@ body::after {
 
 table {
     border-collapse: collapse;
+    margin: auto;
 }
 
 td {
@@ -45,4 +47,5 @@ td {
 
 h1 {
     color: #ffffff;
+    text-align: center;
 }
