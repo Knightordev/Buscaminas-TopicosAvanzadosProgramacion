@@ -43,6 +43,14 @@ def calcular_puntaje(game):
                 puntos += 10
     return puntos
 
+def count_flags(game):
+    total = 0
+    for r in range(game.r):
+        for c in range(game.c):
+            if game.grid[r][c].flag:
+                total += 1
+    return total
+
 def game_to_dict(game):
     result = []
     for r in range(game.r):
@@ -85,7 +93,8 @@ def index():
     session['mines'] = game.mines
     session['nombre'] = "Jugador"  
     data = {'title': 'index', 'page': 'inicio'}
-    return render_template('index.html', data=data, grid=game.get_grid())
+    flags = count_flags(game)
+    return render_template('index.html', data=data, grid=game.get_grid(),total_mines=game.mines, total_flags=flags)
 
 @app.route('/reveal/<int:row>/<int:col>', methods=['POST'])
 def reveal(row, col):
@@ -140,8 +149,9 @@ def handle_flag():
         return jsonify({'error': 'invalid_move'}), 400
 
     session['grid'] = game_to_dict(game)
+    total_flags = count_flags(game)
 
-    return jsonify({'status': 'success', 'is_flagged': flagged})
+    return jsonify({'status': 'success','is_flagged': flagged,'total_flags': total_flags,'total_mines': game.mines})
 
 @app.route('/puntajes')
 def ver_puntajes(): 

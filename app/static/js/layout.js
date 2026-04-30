@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const data = await response.json();
+            const flagCounter = document.getElementById("flag-counter");
 
             if (!response.ok || data.status !== "success") {
                 return;
@@ -158,6 +159,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 showFlag(cell);
             } else {
                 clearCell(cell);
+            }
+
+            if (flagCounter) {
+                flagCounter.textContent = `Flags: ${data.total_flags} / ${data.total_mines}`;
             }
         } catch (error) {
             console.error("Error:", error);
