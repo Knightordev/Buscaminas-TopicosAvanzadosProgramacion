@@ -38,7 +38,7 @@ class Game:
 
     def place_extra_life(self):
         colocadas = 0
-        while colocadas < 3:
+        while colocadas < 1:
             r = random.randint(0, self.r - 1)
             c = random.randint(0, self.c - 1)
             if not self.grid[r][c].mine and not self.grid[r][c].extra_life:
