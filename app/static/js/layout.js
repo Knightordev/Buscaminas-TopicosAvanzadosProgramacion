@@ -78,6 +78,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function guardarPuntaje(puntaje) {
+        let nombre = prompt("¿Cuál es tu nombre?", "");
+        if (!nombre || nombre.trim() === "") nombre = "Jugador";
+
+        await fetch('/guardar_puntaje', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nombre.trim(), puntaje: puntaje })
+        });
+
+        return nombre.trim();
+    }
+
     table.addEventListener("click", async function (e) {
         if (e.target.tagName !== "TD") {
             return;
@@ -117,7 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.type === "mine") {
                 showRevealedCell(cell, { type: "mine" });
-                alert("💣 Perdiste - Puntaje: " + data.puntaje);
+                const nombre = await guardarPuntaje(data.puntaje);
+                alert(`💣 ¡Perdiste, ${nombre}! Puntaje: ${data.puntaje}`);
                 window.location.href = "/";
                 return;
             }
@@ -140,7 +154,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 if (data.win) {
-                    alert("🎉 ¡Ganaste! - Puntaje: " + data.puntaje);
+                    const nombre = await guardarPuntaje(data.puntaje);
+                    alert(`🎉 ¡Ganaste, ${nombre}! Puntaje: ${data.puntaje}`);
                     window.location.href = "/";
                 }
             }

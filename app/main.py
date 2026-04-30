@@ -94,15 +94,8 @@ def check_win(game):
                 return False
     return True
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    if request.method == 'POST':
-        nombre = request.form.get('nombre', 'Jugador')
-        session['nombre'] = nombre
-
-    if 'nombre' not in session:
-        return render_template('nombre.html')
-
     game = Game(10, 10, 10)
     session['grid'] = game_to_dict(game)
     session['r'] = game.r
@@ -131,18 +124,17 @@ def reveal(row, col):
         return jsonify({'blocked': 'flagged'})
 
     if cell.mine:
-        cell.revealed = True
-        session['grid'] = game_to_dict(game)
-
-        vidas = session.get('vidas', 1) - 1
+        vidas = session.get('vidas', 1)
+        vidas -= 1
         session['vidas'] = vidas
 
         if vidas <= 0:
+            cell.revealed = True
+            session['grid'] = game_to_dict(game)
             puntaje = calcular_puntaje(game)
-            guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
-            return jsonify({'type': 'mine', 'puntaje': puntaje, 'vidas': 0})
-
-        return jsonify({'type': 'hit', 'vidas': vidas})
+            return jsonify({'type': 'mine', 'puntaje': puntaje})
+        else:
+            return jsonify({'type': 'hit', 'vidas': vidas})
 
     revealed_cells = game.reveal(row, col)
     session['grid'] = game_to_dict(game)
@@ -150,17 +142,24 @@ def reveal(row, col):
     if revealed_cells is None:
         return jsonify({'error': 'invalid_move'}), 400
 
-    got_extra_life = any(c['extra_life'] for c in revealed_cells)
+    got_extra_life = any(c.get('extra_life') for c in revealed_cells)
     if got_extra_life:
-        session['vidas'] = session.get('vidas', 1) + 1
+        vidas = session.get('vidas', 1)
+        vidas += 1
+        session['vidas'] = vidas
 
     gano = check_win(game)
     if gano:
         puntaje = calcular_puntaje(game)
-        guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
-        return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje, 'vidas': session['vidas']})
+        return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje})
 
-    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False, 'vidas': session['vidas'], 'got_extra_life': got_extra_life})
+    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False, 'got_extra_life': got_extra_life, 'vidas': session.get('vidas', 1)})
+
+@app.route('/guardar_puntaje', methods=['POST'])
+def guardar_puntaje_route():
+    data = request.json
+    guardar_puntaje(data['nombre'], data['puntaje'])
+    return jsonify({'ok': True})
 
 @app.route('/toggle_flag', methods=['POST'])
 def handle_flag():
@@ -171,7 +170,7 @@ def handle_flag():
     data = request.json
     r = data.get('r')
     c = data.get('c')
-
+    
     if r is None or c is None:
         return jsonify({'error': 'missing_coordinates'}), 400
 
