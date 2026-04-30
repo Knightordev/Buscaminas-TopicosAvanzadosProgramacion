@@ -72,7 +72,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (e.target.tagName !== "TD") {
             return;
         }
+
         const cell = e.target;
+
         if (cell.dataset.revealed === "1" || cell.dataset.flagged === "1") {
             return;
         }
@@ -95,23 +97,45 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.already_revealed || data.blocked === "flagged") {
                 return;
             }
-            showRevealedCell(cell, data);
+
+            if (data.type === "mine") {
+                showRevealedCell(cell, { type: "mine" });
+                alert("💣 Perdiste - Puntaje: " + data.puntaje);
+                return;
+            }
+
+            if (data.type === "reveal") {
+                data.cells.forEach(function (revealedCell) {
+                    const targetRow = table.rows[revealedCell.row];
+                    const targetCell = targetRow.cells[revealedCell.col];
+
+                    showRevealedCell(targetCell, {
+                        type: "number",
+                        value: revealedCell.number
+                    });
+                });
+            }
         } catch (error) {
             cell.style.opacity = "1";
             console.error("Error:", error);
         }
     });
+
     table.addEventListener("contextmenu", async function (e) {
         if (e.target.tagName !== "TD") {
             return;
         }
+
         e.preventDefault();
+
         const cell = e.target;
+
         if (cell.dataset.revealed === "1") {
             return;
         }
 
         const position = getCellPosition(cell);
+
         try {
             const response = await fetch("/toggle_flag", {
                 method: "POST",
@@ -140,3 +164,4 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+

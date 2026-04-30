@@ -59,20 +59,52 @@ class Game:
                 if not self.grid[r][c].mine:
                     self.grid[r][c].number = self.count_mines_around(r, c)
 
-    def reveal(self, r, c):
-        if not self.in_bounds(r, c):
-            return None
-
-        cell = self.grid[r][c]
-        if cell.revealed or cell.flag:
-            return None
-
-        cell.revealed = True
-        return cell
-
     def toggle_flag(self, r, c):
         if self.in_bounds(r, c) and not self.grid[r][c].revealed:
             self.grid[r][c].flag = not self.grid[r][c].flag
             return self.grid[r][c].flag
         return None
 
+    def reveal(self, r, c):
+        if not self.in_bounds(r, c):
+            return None
+
+        first_cell = self.grid[r][c]
+        if first_cell.revealed or first_cell.flag:
+            return None
+
+        revealed_cells = []
+        stack = [(r, c)]
+
+        directions = [
+            (-1, -1), (-1, 0), (-1, 1),
+            (0, -1),           (0, 1),
+            (1, -1),  (1, 0),  (1, 1)
+        ]
+
+        while stack:
+            current_r, current_c = stack.pop()
+            current_cell = self.grid[current_r][current_c]
+
+            if current_cell.revealed or current_cell.flag:
+                continue
+
+            current_cell.revealed = True
+            revealed_cells.append({
+                'row': current_r,
+                'col': current_c,
+                'mine': current_cell.mine,
+                'number': current_cell.number
+            })
+
+            if not current_cell.mine and current_cell.number == 0:
+                for dr, dc in directions:
+                    nr = current_r + dr
+                    nc = current_c + dc
+
+                    if self.in_bounds(nr, nc):
+                        neighbor = self.grid[nr][nc]
+                        if not neighbor.revealed and not neighbor.flag:
+                            stack.append((nr, nc))
+
+        return revealed_cells
