@@ -7,6 +7,7 @@ class Cell:
         self.revealed = False
         self.flag = False
         self.number = 0
+        self.extra_life = False
 
 class Game:
     def __init__(self, r, c, mines):
@@ -15,6 +16,7 @@ class Game:
         self.mines = mines
         self.grid = self.create_grid()
         self.place_mines()
+        self.place_extra_life()
         self.calculate_numbers()
 
     def create_grid(self):
@@ -33,6 +35,14 @@ class Game:
             if not self.grid[r][c].mine:
                 self.grid[r][c].mine = True
                 placed += 1
+
+    def place_extra_life(self):
+        while True:
+            r = random.randint(0, self.r - 1)
+            c = random.randint(0, self.c - 1)
+            if not self.grid[r][c].mine:
+                self.grid[r][c].extra_life = True
+                break
 
     def in_bounds(self, r, c):
         return 0 <= r < self.r and 0 <= c < self.c
@@ -94,7 +104,8 @@ class Game:
                 'row': current_r,
                 'col': current_c,
                 'mine': current_cell.mine,
-                'number': current_cell.number
+                'number': current_cell.number,
+                'extra_life': current_cell.extra_life
             })
 
             if not current_cell.mine and current_cell.number == 0:

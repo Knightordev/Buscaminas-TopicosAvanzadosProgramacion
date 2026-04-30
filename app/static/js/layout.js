@@ -39,6 +39,13 @@ document.addEventListener("DOMContentLoaded", function () {
         cell.style.color = "#2c3e50";
     }
 
+    function updateVidas(vidas) {
+        const vidasEl = document.getElementById("vidas-counter");
+        if (vidasEl) {
+            vidasEl.textContent = "Vidas: " + "❤️".repeat(vidas);
+        }
+    }
+
     function showRevealedCell(cell, data) {
         cell.dataset.revealed = "1";
         cell.dataset.flagged = "0";
@@ -47,6 +54,12 @@ document.addEventListener("DOMContentLoaded", function () {
             cell.textContent = "💣";
             cell.style.background = "#e74c3c";
             cell.style.color = "white";
+            return;
+        }
+
+        if (data.extra_life) {
+            cell.textContent = "💚";
+            cell.style.background = "#ecf0f1";
             return;
         }
 
@@ -95,6 +108,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            if (data.type === "hit") {
+                showRevealedCell(cell, { type: "mine" });
+                updateVidas(data.vidas);
+                alert("💥 ¡Pisaste una mina! Te queda " + data.vidas + " vida(s)");
+                return;
+            }
+
             if (data.type === "mine") {
                 showRevealedCell(cell, { type: "mine" });
                 alert("💣 Perdiste - Puntaje: " + data.puntaje);
@@ -109,9 +129,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     showRevealedCell(targetCell, {
                         type: "number",
-                        value: revealedCell.number
+                        value: revealedCell.number,
+                        extra_life: revealedCell.extra_life
                     });
                 });
+
+                if (data.got_extra_life) {
+                    updateVidas(data.vidas);
+                    alert("💚 ¡Encontraste una vida extra!");
+                }
 
                 if (data.win) {
                     alert("🎉 ¡Ganaste! - Puntaje: " + data.puntaje);

@@ -3,6 +3,7 @@
 
 {% block body %}
 <p id="flag-counter">Flags: {{ total_flags }} / {{ total_mines }}</p>
+<p id="vidas-counter">Vidas: {% for i in range(vidas) %}❤️{% endfor %}</p>
 
 <table id="table">
     
@@ -15,6 +16,8 @@
             {% elif cell.revealed %}
                 {% if cell.mine %}
                     💣
+                {% elif cell.extra_life %}
+                    💚
                 {% elif cell.number > 0 %}
                     {{cell.number}}
                 {% endif %}
@@ -26,5 +29,3 @@
 </table>
 <a href="/puntajes"> Ver Top 10</a>
 {% endblock %}
-
-

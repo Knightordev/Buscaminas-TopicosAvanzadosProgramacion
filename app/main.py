@@ -61,7 +61,8 @@ def game_to_dict(game):
                 'mine': cell.mine,
                 'revealed': cell.revealed,
                 'flag': cell.flag,
-                'number': cell.number
+                'number': cell.number,
+                'extra_life': cell.extra_life
             })
         result.append(row)
     return result
@@ -82,6 +83,7 @@ def load_game_from_session():
             g.grid[r][c].revealed = d['revealed']
             g.grid[r][c].flag = d['flag']
             g.grid[r][c].number = d['number']
+            g.grid[r][c].extra_life = d['extra_life']
     return g
 
 def check_win(game):
@@ -106,9 +108,10 @@ def index():
     session['r'] = game.r
     session['c'] = game.c
     session['mines'] = game.mines
+    session['vidas'] = 1
     data = {'title': 'index', 'page': 'inicio'}
     flags = count_flags(game)
-    return render_template('index.html', data=data, grid=game.get_grid(),total_mines=game.mines, total_flags=flags)
+    return render_template('index.html', data=data, grid=game.get_grid(), total_mines=game.mines, total_flags=flags, vidas=session['vidas'])
 
 @app.route('/reveal/<int:row>/<int:col>', methods=['POST'])
 def reveal(row, col):
@@ -130,24 +133,34 @@ def reveal(row, col):
     if cell.mine:
         cell.revealed = True
         session['grid'] = game_to_dict(game)
-        
-        puntaje = calcular_puntaje(game)
-        guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
-        return jsonify({'type': 'mine', 'puntaje': puntaje})
-    
+
+        vidas = session.get('vidas', 1) - 1
+        session['vidas'] = vidas
+
+        if vidas <= 0:
+            puntaje = calcular_puntaje(game)
+            guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
+            return jsonify({'type': 'mine', 'puntaje': puntaje, 'vidas': 0})
+
+        return jsonify({'type': 'hit', 'vidas': vidas})
+
     revealed_cells = game.reveal(row, col)
     session['grid'] = game_to_dict(game)
 
     if revealed_cells is None:
         return jsonify({'error': 'invalid_move'}), 400
 
+    got_extra_life = any(c['extra_life'] for c in revealed_cells)
+    if got_extra_life:
+        session['vidas'] = session.get('vidas', 1) + 1
+
     gano = check_win(game)
     if gano:
         puntaje = calcular_puntaje(game)
         guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
-        return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje})
+        return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje, 'vidas': session['vidas']})
 
-    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False})
+    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False, 'vidas': session['vidas'], 'got_extra_life': got_extra_life})
 
 @app.route('/toggle_flag', methods=['POST'])
 def handle_flag():
@@ -158,7 +171,7 @@ def handle_flag():
     data = request.json
     r = data.get('r')
     c = data.get('c')
-    
+
     if r is None or c is None:
         return jsonify({'error': 'missing_coordinates'}), 400
 
@@ -172,7 +185,7 @@ def handle_flag():
     session['grid'] = game_to_dict(game)
     total_flags = count_flags(game)
 
-    return jsonify({'status': 'success','is_flagged': flagged,'total_flags': total_flags,'total_mines': game.mines})
+    return jsonify({'status': 'success', 'is_flagged': flagged, 'total_flags': total_flags, 'total_mines': game.mines})
 
 @app.route('/puntajes')
 def ver_puntajes(): 
@@ -189,8 +202,8 @@ def ver_puntajes():
     datos = cursor.fetchall()
     conn.close()
 
-    data = {'title': 'puntajes', 'page': 'Top 10'}  # 👈 agrega esto
-    return render_template("puntajes.html", puntajes=datos, data=data)  # 👈 y pásalo aquí
+    data = {'title': 'puntajes', 'page': 'Top 10'}
+    return render_template("puntajes.html", puntajes=datos, data=data)
 
 if __name__ == '__main__':
     app.run(debug=True)
