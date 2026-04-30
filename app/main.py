@@ -189,7 +189,8 @@ def ver_puntajes():
     datos = cursor.fetchall()
     conn.close()
 
-    return render_template("puntajes.html", puntajes=datos)
+    data = {'title': 'puntajes', 'page': 'Top 10'}  # 👈 agrega esto
+    return render_template("puntajes.html", puntajes=datos, data=data)  # 👈 y pásalo aquí
 
 if __name__ == '__main__':
     app.run(debug=True)
