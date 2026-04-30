@@ -37,12 +37,13 @@ class Game:
                 placed += 1
 
     def place_extra_life(self):
-        while True:
+        colocadas = 0
+        while colocadas < 3:
             r = random.randint(0, self.r - 1)
             c = random.randint(0, self.c - 1)
-            if not self.grid[r][c].mine:
+            if not self.grid[r][c].mine and not self.grid[r][c].extra_life:
                 self.grid[r][c].extra_life = True
-                break
+                colocadas += 1
 
     def in_bounds(self, r, c):
         return 0 <= r < self.r and 0 <= c < self.c
