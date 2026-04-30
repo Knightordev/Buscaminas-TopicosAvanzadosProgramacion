@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showFlag(cell) {
-        cell.textContent = "🚩";
+        cell.textContent = "🛡️";
         cell.dataset.flagged = "1";
         cell.style.background = "#f1c40f";
         cell.style.color = "#2c3e50";
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
         cell.dataset.flagged = "0";
 
         if (data.type === "mine") {
-            cell.textContent = "💣";
+            cell.textContent = "💀";
             cell.style.background = "#e74c3c";
             cell.style.color = "white";
             return;
