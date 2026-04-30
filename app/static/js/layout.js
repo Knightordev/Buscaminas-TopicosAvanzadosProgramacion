@@ -40,9 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showRevealedCell(cell, data) {
-        if (data.type === "mine") {
-    alert("💣 Perdiste — Puntaje: " + data.puntaje);
-}
         cell.dataset.revealed = "1";
         cell.dataset.flagged = "0";
 
@@ -101,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.type === "mine") {
                 showRevealedCell(cell, { type: "mine" });
                 alert("💣 Perdiste - Puntaje: " + data.puntaje);
+                window.location.href = "/";
                 return;
             }
 
@@ -114,6 +112,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         value: revealedCell.number
                     });
                 });
+
+                if (data.win) {
+                    alert("🎉 ¡Ganaste! - Puntaje: " + data.puntaje);
+                    window.location.href = "/";
+                }
             }
         } catch (error) {
             cell.style.opacity = "1";
@@ -164,4 +167,3 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
-

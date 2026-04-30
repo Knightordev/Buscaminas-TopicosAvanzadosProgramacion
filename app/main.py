@@ -76,14 +76,28 @@ def load_game_from_session():
             g.grid[r][c].number = d['number']
     return g
 
-@app.route('/')
+def check_win(game):
+    for r in range(game.r):
+        for c in range(game.c):
+            cell = game.grid[r][c]
+            if not cell.mine and not cell.revealed:
+                return False
+    return True
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', 'Jugador')
+        session['nombre'] = nombre
+
+    if 'nombre' not in session:
+        return render_template('nombre.html')
+
     game = Game(10, 10, 10)
     session['grid'] = game_to_dict(game)
     session['r'] = game.r
     session['c'] = game.c
     session['mines'] = game.mines
-    session['nombre'] = "Jugador"  
     data = {'title': 'index', 'page': 'inicio'}
     return render_template('index.html', data=data, grid=game.get_grid())
 
@@ -117,7 +131,14 @@ def reveal(row, col):
 
     if revealed_cells is None:
         return jsonify({'error': 'invalid_move'}), 400
-    return jsonify({'type': 'reveal', 'cells': revealed_cells})
+
+    gano = check_win(game)
+    if gano:
+        puntaje = calcular_puntaje(game)
+        guardar_puntaje(session.get('nombre', 'Jugador'), puntaje)
+        return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje})
+
+    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False})
 
 @app.route('/toggle_flag', methods=['POST'])
 def handle_flag():
