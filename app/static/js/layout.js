@@ -5,6 +5,50 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // ─── TEMPORIZADOR ────────────────────────────────────────────────────────────
+    let timerStarted = false;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    const PENALTY_START = 180; // 3 minutos en segundos
+
+    const timerEl = document.getElementById("timer-display");
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const s = (seconds % 60).toString().padStart(2, "0");
+        return `${m}:${s}`;
+    }
+
+    function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            if (timerEl) {
+                timerEl.textContent = "⏱ " + formatTime(elapsedSeconds);
+                if (elapsedSeconds >= PENALTY_START) {
+                    timerEl.style.color = "#e74c3c";
+                    timerEl.style.fontWeight = "bold";
+                } else if (elapsedSeconds >= PENALTY_START - 30) {
+                    timerEl.style.color = "#f39c12";
+                }
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function calcularPuntajeConTiempo(puntajeBase) {
+        if (elapsedSeconds <= PENALTY_START) {
+            return puntajeBase;
+        }
+        const penalizacion = elapsedSeconds - PENALTY_START;
+        return Math.max(0, puntajeBase - penalizacion);
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+
     const colors = [
         "",
         "#3498db",
@@ -102,6 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        startTimer();
+
         const position = getCellPosition(cell);
         cell.style.opacity = "0.5";
 
@@ -129,9 +175,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (data.type === "mine") {
+                stopTimer();
                 showRevealedCell(cell, { type: "mine" });
-                const nombre = await guardarPuntaje(data.puntaje);
-                alert(`💣 ¡Perdiste, ${nombre}! Puntaje: ${data.puntaje}`);
+                const puntajeFinal = calcularPuntajeConTiempo(data.puntaje);
+                const nombre = await guardarPuntaje(puntajeFinal);
+                const tiempoMsg = elapsedSeconds > PENALTY_START
+                    ? `\n⏱ Tiempo: ${formatTime(elapsedSeconds)} (penalización aplicada)`
+                    : `\n⏱ Tiempo: ${formatTime(elapsedSeconds)}`;
+                alert(`💣 ¡Perdiste, ${nombre}!\nPuntaje base: ${data.puntaje}\nPuntaje final: ${puntajeFinal}${tiempoMsg}`);
                 window.location.href = "/";
                 return;
             }
@@ -154,8 +205,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 if (data.win) {
-                    const nombre = await guardarPuntaje(data.puntaje);
-                    alert(`🎉 ¡Ganaste, ${nombre}! Puntaje: ${data.puntaje}`);
+                    stopTimer();
+                    const puntajeFinal = calcularPuntajeConTiempo(data.puntaje);
+                    const nombre = await guardarPuntaje(puntajeFinal);
+                    const tiempoMsg = elapsedSeconds > PENALTY_START
+                        ? `\n⏱ Tiempo: ${formatTime(elapsedSeconds)} (penalización aplicada)`
+                        : `\n⏱ Tiempo: ${formatTime(elapsedSeconds)}`;
+                    alert(`🎉 ¡Ganaste, ${nombre}!\nPuntaje base: ${data.puntaje}\nPuntaje final: ${puntajeFinal}${tiempoMsg}`);
                     window.location.href = "/";
                 }
             }
