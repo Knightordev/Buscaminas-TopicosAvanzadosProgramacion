@@ -50,3 +50,11 @@ h1 {
     color: #ffffff;
     text-align: center;
 }
+
+#timer-display {
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    color: #00ff88;
+    text-shadow: 0 0 8px #00ff88;
+    transition: color 0.5s, text-shadow 0.5s;
+}
