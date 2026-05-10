@@ -96,7 +96,7 @@ def check_win(game):
 
 @app.route('/', methods=['GET'])
 def index():
-    game = Game(10, 10, 10)
+    game = Game(10, 10, 30)
     session['grid'] = game_to_dict(game)
     session['r'] = game.r
     session['c'] = game.c
