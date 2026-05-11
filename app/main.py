@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from game import Game
 import sqlite3  
 
@@ -14,26 +14,36 @@ def init_db():
     CREATE TABLE IF NOT EXISTS puntajes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT,
-        puntaje INTEGER
+        puntaje INTEGER,
+        tiempo INTEGER DEFAULT 0
     )
     """)
-    
+
+    try:
+        cursor.execute("ALTER TABLE puntajes ADD COLUMN tiempo INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
     conn.commit()
     conn.close()
 
 init_db() 
 
-def guardar_puntaje(nombre, puntaje):  
+def guardar_puntaje(nombre, puntaje, tiempo=0):  
     conn = sqlite3.connect("puntajes.db")
     cursor = conn.cursor()
-
     cursor.execute(
-        "INSERT INTO puntajes (nombre, puntaje) VALUES (?, ?)",
-        (nombre, puntaje)
+        "INSERT INTO puntajes (nombre, puntaje, tiempo) VALUES (?, ?, ?)",
+        (nombre, puntaje, tiempo)
     )
-
     conn.commit()
     conn.close()
+
+def calcular_minas(r, c):
+    celdas = r * c
+    # Entre 10% y 25% de las celdas, escala con el tamaño del tablero
+    porcentaje = 0.10 + (celdas / (40 * 40)) * 0.15
+    return max(1, int(celdas * porcentaje))
 
 def calcular_puntaje(game): 
     puntos = 0
@@ -94,17 +104,40 @@ def check_win(game):
                 return False
     return True
 
+
+
+
 @app.route('/', methods=['GET'])
-def index():
-    game = Game(10, 10, 30)
+def menu():
+    data = {'title': 'Buscaminas', 'page': 'Buscaminas'}
+    return render_template('menu.html', data=data)
+
+@app.route('/jugar', methods=['POST'])
+def jugar():
+    try:
+        rows = int(request.form.get('rows', 10))
+        cols = int(request.form.get('cols', 10))
+    except ValueError:
+        return redirect(url_for('menu'))
+
+    # Validar rango 2x2 a 40x40
+    rows = max(2, min(40, rows))
+    cols = max(2, min(40, cols))
+
+    mines = calcular_minas(rows, cols)
+
+    game = Game(rows, cols, mines)
     session['grid'] = game_to_dict(game)
     session['r'] = game.r
     session['c'] = game.c
     session['mines'] = game.mines
     session['vidas'] = 1
-    data = {'title': 'index', 'page': 'inicio'}
+
+    data = {'title': 'juego', 'page': 'juego'}
     flags = count_flags(game)
-    return render_template('index.html', data=data, grid=game.get_grid(), total_mines=game.mines, total_flags=flags, vidas=session['vidas'])
+    return render_template('index.html', data=data, grid=game.get_grid(),
+                           total_mines=game.mines, total_flags=flags, vidas=session['vidas'])
+
 
 @app.route('/reveal/<int:row>/<int:col>', methods=['POST'])
 def reveal(row, col):
@@ -153,13 +186,19 @@ def reveal(row, col):
         puntaje = calcular_puntaje(game)
         return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': True, 'puntaje': puntaje})
 
-    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False, 'got_extra_life': got_extra_life, 'vidas': session.get('vidas', 1)})
+    return jsonify({'type': 'reveal', 'cells': revealed_cells, 'win': False,
+                    'got_extra_life': got_extra_life, 'vidas': session.get('vidas', 1)})
+
 
 @app.route('/guardar_puntaje', methods=['POST'])
 def guardar_puntaje_route():
     data = request.json
-    guardar_puntaje(data['nombre'], data['puntaje'])
+    nombre = data.get('nombre', 'Jugador')
+    puntaje = data.get('puntaje', 0)
+    tiempo  = data.get('tiempo', 0)
+    guardar_puntaje(nombre, puntaje, tiempo)
     return jsonify({'ok': True})
+
 
 @app.route('/toggle_flag', methods=['POST'])
 def handle_flag():
@@ -184,25 +223,26 @@ def handle_flag():
     session['grid'] = game_to_dict(game)
     total_flags = count_flags(game)
 
-    return jsonify({'status': 'success', 'is_flagged': flagged, 'total_flags': total_flags, 'total_mines': game.mines})
+    return jsonify({'status': 'success', 'is_flagged': flagged,
+                    'total_flags': total_flags, 'total_mines': game.mines})
+
 
 @app.route('/puntajes')
 def ver_puntajes(): 
     conn = sqlite3.connect("puntajes.db")
     cursor = conn.cursor()
-
     cursor.execute("""
-        SELECT nombre, puntaje 
+        SELECT nombre, puntaje, tiempo
         FROM puntajes 
         ORDER BY puntaje DESC 
         LIMIT 10
     """)
-
     datos = cursor.fetchall()
     conn.close()
 
     data = {'title': 'puntajes', 'page': 'Top 10'}
     return render_template("puntajes.html", puntajes=datos, data=data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -7,14 +7,22 @@
 
 <table>
     <tr>
+        <th style="color:white;">#</th>
         <th style="color:white;">Nombre</th>
         <th style="color:white;">Puntaje</th>
+        <th style="color:white;">Tiempo</th>
     </tr>
 
-    {% for nombre, puntaje in puntajes %}
+    {% for nombre, puntaje, tiempo in puntajes %}
     <tr>
+        <td>{{ loop.index }}</td>
         <td>{{ nombre }}</td>
         <td>{{ puntaje }}</td>
+        <td>
+            {% set minutos = (tiempo // 60) %}
+            {% set segundos = (tiempo % 60) %}
+            {{ "%02d:%02d" | format(minutos, segundos) }}
+        </td>
     </tr>
     {% endfor %}
 </table>

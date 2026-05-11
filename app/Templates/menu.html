@@ -1,0 +1,87 @@
+{% extends './layout.html' %}
+{% block title %}Buscaminas{% endblock %}
+
+{% block body %}
+
+<h2 style="color: #00ff88; text-shadow: 0 0 8px #00ff88; letter-spacing: 2px;">Nueva Partida</h2>
+
+<div style="margin: 30px auto; display: inline-block; text-align: left;">
+
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 6px; letter-spacing: 1px;">Filas: <span id="rows-val" style="color:#00ff88;">10</span></label>
+        <input type="range" id="rows" min="2" max="40" value="10"
+            style="width: 300px; accent-color: #00ff88;">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 6px; letter-spacing: 1px;">Columnas: <span id="cols-val" style="color:#00ff88;">10</span></label>
+        <input type="range" id="cols" min="2" max="40" value="10"
+            style="width: 300px; accent-color: #00ff88;">
+    </div>
+
+    <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 6px;">
+        Cuadrícula: <span id="grid-size" style="color:white;">10 x 10</span>
+    </p>
+    <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 24px;">
+        Minas: <span id="mine-count" style="color:#e74c3c; font-weight:bold; text-shadow: 0 0 6px #e74c3c;">30</span>
+    </p>
+
+    <form action="/jugar" method="POST">
+        <input type="hidden" name="rows" id="rows-input" value="10">
+        <input type="hidden" name="cols" id="cols-input" value="10">
+        <button type="submit"
+            style="
+                background: transparent;
+                border: 2px solid #00ff88;
+                color: #00ff88;
+                padding: 10px 40px;
+                font-size: 1.1rem;
+                letter-spacing: 2px;
+                cursor: pointer;
+                text-shadow: 0 0 6px #00ff88;
+                box-shadow: 0 0 10px #00ff88;
+                transition: background 0.2s;
+            "
+            onmouseover="this.style.background='#00ff8822'"
+            onmouseout="this.style.background='transparent'"
+        >JUGAR</button>
+    </form>
+</div>
+
+<br>
+<a href="/puntajes" style="color:#00ff88;">Ver Top 10</a>
+
+<script>
+    const rowsSlider = document.getElementById('rows');
+    const colsSlider = document.getElementById('cols');
+    const rowsVal    = document.getElementById('rows-val');
+    const colsVal    = document.getElementById('cols-val');
+    const gridSize   = document.getElementById('grid-size');
+    const mineCount  = document.getElementById('mine-count');
+    const rowsInput  = document.getElementById('rows-input');
+    const colsInput  = document.getElementById('cols-input');
+
+    function calcularMinas(r, c) {
+        const celdas = r * c;
+        // Entre 15% y 25% de las celdas, escalado por tamaño
+        const porcentaje = 0.10 + (celdas / (40 * 40)) * 0.15;
+        return Math.max(1, Math.floor(celdas * porcentaje));
+    }
+
+    function actualizar() {
+        const r = parseInt(rowsSlider.value);
+        const c = parseInt(colsSlider.value);
+        rowsVal.textContent  = r;
+        colsVal.textContent  = c;
+        gridSize.textContent = `${r} x ${c}`;
+        mineCount.textContent = calcularMinas(r, c);
+        rowsInput.value = r;
+        colsInput.value = c;
+    }
+
+    rowsSlider.addEventListener('input', actualizar);
+    colsSlider.addEventListener('input', actualizar);
+    actualizar();
+</script>
+
+{% endblock %}

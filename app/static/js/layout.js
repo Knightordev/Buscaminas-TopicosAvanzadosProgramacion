@@ -5,11 +5,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // ─── TEMPORIZADOR ────────────────────────────────────────────────────────────
     let timerStarted = false;
     let timerInterval = null;
     let elapsedSeconds = 0;
-    const PENALTY_START = 180; // 3 minutos en segundos
+    const PENALTY_START = 180;
 
     const timerEl = document.getElementById("timer-display");
 
@@ -47,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const penalizacion = elapsedSeconds - PENALTY_START;
         return Math.max(0, puntajeBase - penalizacion);
     }
-    // ─────────────────────────────────────────────────────────────────────────────
+
 
     const colors = [
         "",
@@ -122,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+  
     async function guardarPuntaje(puntaje) {
         let nombre = prompt("¿Cuál es tu nombre?", "");
         if (!nombre || nombre.trim() === "") nombre = "Jugador";
@@ -129,11 +129,16 @@ document.addEventListener("DOMContentLoaded", function () {
         await fetch('/guardar_puntaje', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre: nombre.trim(), puntaje: puntaje })
+            body: JSON.stringify({
+                nombre: nombre.trim(),
+                puntaje: puntaje,
+                tiempo: elapsedSeconds
+            })
         });
 
         return nombre.trim();
     }
+
 
     table.addEventListener("click", async function (e) {
         if (e.target.tagName !== "TD") {
